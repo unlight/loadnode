@@ -1,0 +1,8 @@
+{
+  "name": "loadnode",
+  "version": "1.0.0",
+  "dependencies": {
+  },
+  "devDependencies": {},
+	"main": "./loadnode.js"
+}
