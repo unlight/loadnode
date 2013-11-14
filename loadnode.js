@@ -3,6 +3,7 @@ var fs = require("fs");
 var assert = require("assert");
 
 var cache = {};
+var loaded = false;
 
 function readDirectory(path) {
 	var items = fs.readdirSync(path);
@@ -22,22 +23,28 @@ function readDirectory(path) {
 	}
 }
 
-module.exports = function(moduleOrFile) {
-	var filepath;
-	if (typeof moduleOrFile == "object") {
-		filepath = moduleOrFile.filename;
-	} else {
-		filepath = moduleOrFile;
+function file (path) {
+	assert(typeof path == "string", "Path must be a string.");
+	if (cache[path]) {
+		var item = cache[path];
+		path = item.path;
 	}
-	
-	readDirectory(path.dirname(filepath));
-	
-	return function(path) {
-		assert(typeof path == "string", "Path must be a string.");
-		if (cache[path]) {
-			var item = cache[path];
-			path = item.path;
+	return require(path);
+}
+
+module.exports = function(moduleOrFile) {
+	if (loaded == false) {
+		var filepath;
+		if (typeof moduleOrFile == "object") {
+			filepath = moduleOrFile.filename;
+		} else {
+			filepath = moduleOrFile;
 		}
-		return require(path);
-	};
+		
+		readDirectory(path.dirname(filepath));
+		loaded = true;
+		return file;
+	} else {
+		return file(moduleOrFile);
+	}
 }
