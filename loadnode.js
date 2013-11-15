@@ -10,10 +10,12 @@ function readDirectory(path) {
 	for (var i in items) {
 		var item = items[i];
 		if (item[0] == ".") continue;
+		if (item[0] == "~") continue;
 		var filePath = path + "/" + item;
 		var ext = filePath.substr(filePath.lastIndexOf(".") + 1);
 		var stat = fs.statSync(filePath);
 		if (stat.isDirectory()) {
+			if (item == "node_modules") continue;
 			readDirectory(filePath);
 		} else if (ext == "js") {
 			cache[item] = {
@@ -28,8 +30,11 @@ function file (path) {
 	if (cache[path]) {
 		var item = cache[path];
 		path = item.path;
+		return require(path);
+	} else {
+		var cwd = process.cwd() + "/";
+		return require(cwd + path);
 	}
-	return require(path);
 }
 
 module.exports = function(moduleOrFile) {
