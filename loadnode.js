@@ -22,6 +22,15 @@ function readDirectory(path) {
 	}
 }
 
+function file(path) {
+	assert(typeof path == "string", "Path must be a string.");
+	if (cache[path]) {
+		var item = cache[path];
+		path = item.path;
+	}
+	return require(path);
+};
+
 module.exports = function(moduleOrFile) {
 	var filepath;
 	if (typeof moduleOrFile == "object") {
@@ -32,12 +41,5 @@ module.exports = function(moduleOrFile) {
 	
 	readDirectory(path.dirname(filepath));
 	
-	return function(path) {
-		assert(typeof path == "string", "Path must be a string.");
-		if (cache[path]) {
-			var item = cache[path];
-			path = item.path;
-		}
-		return require(path);
-	};
+
 }
