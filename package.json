@@ -1,8 +1,19 @@
 {
-  "name": "loadnode",
-  "version": "1.0.0",
-  "dependencies": {
-  },
-  "devDependencies": {},
-	"main": "./loadnode.js"
+    "name": "loadnode",
+    "author": "S",
+    "version": "1.0.0",
+    "description": "Simple loader of javascript files",
+    "main": "./loadnode.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/unlight/loadnode.git"
+    },
+    "dependencies": {
+    },
+    "devDependencies": {
+    },
+    "keywords": [
+        "autoload"
+    ],
+    "license": "MIT"
 }
