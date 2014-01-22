@@ -37,18 +37,29 @@ function file (path) {
 	}
 }
 
-module.exports = function(moduleOrFile) {
+var count = 0;
+
+function findRootDirectory(directory, callback) {
+	directory = directory || __dirname + "/..";
+	var exists = fs.existsSync(directory + "/package.json");
+	if (!exists) {
+		if (++count > 100) {
+			throw new Error("Couldn't find package.json file parent directories.");
+		}
+		return findRootDirectory(directory + "/..");
+	} else {
+		directory = path.normalize(directory);
+		// callback(null, directory);
+		return directory;
+	}
+}
+
+module.exports = function(name) {
 	if (loaded == false) {
 		var filepath;
-		if (typeof moduleOrFile == "object") {
-			filepath = moduleOrFile.filename;
-		} else {
-			filepath = moduleOrFile;
-		}
-		readDirectory(path.dirname(filepath));
+		var rootDirectory = findRootDirectory(null);
+		readDirectory(rootDirectory);
 		loaded = true;
-		return file;
-	} else {
-		return file(moduleOrFile);
 	}
+	return file(name);
 }
