@@ -20,8 +20,8 @@ wru.test([{
 {
 	name: "load dummy 1",
 	test: function() {
-		var result = loadnode("directory2/dummy1.js");	
-		wru.assert(result == "dummy1.js in directory2");
+		var result = loadnode("directory1/dummy1.js");	
+		wru.assert(result == "dummy1.js in directory1");
 	}
 },
 

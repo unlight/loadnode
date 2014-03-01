@@ -48,12 +48,19 @@ function file (searchPath) {
 			for (var i = 0, count = items.length; i < count; i++) {
 				item = items[i];
 				if (item.path.slice(-searchPath.length) == searchPath) {
-					match.push(item.path);
+					match.push(item);
 				}
 			}
-			if (match.length > 1) {
+			if (match.length == 1) {
+				// Add searchPath to pool.
+				item = match[0];
+				pool[searchPath] = [item];
+			} else if (match.length > 1) {
 				var message = format("'%s' is ambiguous identifier.", searchPath);
 				throw new LoadError(message);
+			} else {
+				// Nothing found.
+				return require(searchPath);
 			}
 		}
 		var filePath = item.path;
