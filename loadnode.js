@@ -1,9 +1,17 @@
 var path = require("path");
 var fs = require("fs");
 var assert = require("assert");
+var format = require("util").format;
 
-var cache = {};
-var loaded = false;
+var pool = {};
+
+function LoadError(message) {
+	this.constructor.prototype.__proto__ = Error.prototype;
+	Error.call(this);
+	Error.captureStackTrace(this, this.constructor);
+	this.name = this.constructor.name;
+	this.message = message;
+}
 
 function readDirectory(path) {
 	var items = fs.readdirSync(path);
@@ -18,19 +26,38 @@ function readDirectory(path) {
 			if (item == "node_modules") continue;
 			readDirectory(filePath);
 		} else if (ext == "js") {
-			cache[item] = {
-				path: filePath
-			};
+			if (!pool[item]) {
+				pool[item] = [];
+			}
+			pool[item].push({path: filePath});
 		}
 	}
+	return pool;
 }
 
-function file (path) {
-	assert(typeof path == "string", "Path must be a string.");
-	if (cache[path]) {
-		var item = cache[path];
-		path = item.path;
-		return require(path);
+function file (searchPath) {
+	assert(typeof searchPath == "string", "SearchPath must be a string.");
+	var basename = path.basename(searchPath);
+	if (pool[basename]) {
+		var items = pool[basename];
+		var item = {};
+		if (items.length == 1) {
+			item = items[0];
+		} else {
+			var match = [];
+			for (var i = 0, count = items.length; i < count; i++) {
+				item = items[i];
+				if (item.path.slice(-searchPath.length) == searchPath) {
+					match.push(item.path);
+				}
+			}
+			if (match.length > 1) {
+				var message = format("'%s' is ambiguous identifier.", searchPath);
+				throw new LoadError(message);
+			}
+		}
+		var filePath = item.path;
+		return require(filePath);
 	} else {
 		var cwd = process.cwd() + "/";
 		return require(cwd + path);
@@ -44,22 +71,28 @@ function findRootDirectory(directory, callback) {
 	var exists = fs.existsSync(directory + "/package.json");
 	if (!exists) {
 		if (++count > 100) {
-			throw new Error("Couldn't find package.json file parent directories.");
+			throw new Error("Couldn't find package.json file in parent directories.");
 		}
 		return findRootDirectory(directory + "/..");
 	} else {
 		directory = path.normalize(directory);
-		// callback(null, directory);
 		return directory;
 	}
 }
 
-module.exports = function(name) {
-	if (loaded == false) {
-		var filepath;
-		var rootDirectory = findRootDirectory(null);
-		readDirectory(rootDirectory);
-		loaded = true;
-	}
-	return file(name);
+module.exports = file;
+
+var isTest = false;
+
+if (module.parent) {
+	var moduleParentFilename =  path.basename(module.parent.filename);
+	isTest = (moduleParentFilename == "test-loadnode.js");
 }
+
+if (!isTest) {
+	var rootDirectory = findRootDirectory(null);
+	readDirectory(rootDirectory);
+} else {
+	module.exports.load = readDirectory;
+}
+

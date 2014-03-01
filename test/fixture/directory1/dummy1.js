@@ -1,0 +1,1 @@
+module.exports = "dummy1.js in directory1";
