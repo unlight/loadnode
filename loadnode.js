@@ -67,7 +67,7 @@ function file (searchPath) {
 		return require(filePath);
 	} else {
 		var cwd = process.cwd() + "/";
-		return require(cwd + path);
+		return require(cwd + searchPath);
 	}
 }
 
